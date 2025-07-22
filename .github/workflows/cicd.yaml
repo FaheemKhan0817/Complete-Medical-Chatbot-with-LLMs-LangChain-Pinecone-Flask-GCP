@@ -27,8 +27,19 @@ jobs:
         env:
           IMAGE_PATH: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/medical-bot:latest
         run: |
-          docker build -t $IMAGE_PATH .
-          docker push $IMAGE_PATH
+          echo "--- Building image with path ---"
+          echo "$IMAGE_PATH"
+          echo "--------------------------------"
+
+          # Fail fast if the IMAGE_PATH is not set
+          if [ -z "$IMAGE_PATH" ]; then
+            echo "Error: IMAGE_PATH environment variable is not set."
+            echo "Please check your repository's GitHub Secrets (GCP_PROJECT_ID, GCP_REGION, GCP_ARTIFACT_REPO)."
+            exit 1
+          fi
+
+          docker build -t "$IMAGE_PATH" .
+          docker push "$IMAGE_PATH"
 
       - name: Pull and Run New Docker Container
         env:
@@ -39,10 +50,10 @@ jobs:
           docker rm medical-chatbot-container || true
           
           # Pull the latest image from Artifact Registry
-          docker pull $IMAGE_PATH
+          docker pull "$IMAGE_PATH"
           
           # Run the new container with environment variables from GitHub Secrets
           docker run -d --name medical-chatbot-container -p 8080:8080 \
             -e PINECONE_API_KEY='${{ secrets.PINECONE_API_KEY }}' \
             -e GOOGLE_API_KEY='${{ secrets.GOOGLE_API_KEY }}' \
-            $IMAGE_PATH
+            "$IMAGE_PATH"
