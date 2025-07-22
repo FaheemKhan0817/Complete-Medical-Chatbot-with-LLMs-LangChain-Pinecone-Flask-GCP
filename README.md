@@ -123,3 +123,24 @@ Apache-2.0 License. See `LICENSE` file.
 ---
 
 <p align="center">Made with ❤️ by Faheem Khan</p>
+
+## 🌐 Connect with Me
+
+- 🔗 [LinkedIn](https://linkedin.com/in/faheemkhanml)
+- 🌍 [Portfolio](https://www.datascienceportfol.io/Faheem_Khan)
+
+## 🔴 Live Demo
+[Click here to try the chatbot](http://34.61.240.234:8080/)
+
+## 📢 Why This Project Stands Out
+
+- Built with production-grade tools (LangChain, GCP, Pinecone, Docker).
+- Demonstrates real-world CI/CD pipelines using GitHub Actions and GCP.
+- Highlights advanced concepts like conversational memory and retrieval augmentation.
+- Ready for deployment, making it ideal for startup MVPs or healthcare tech demos.
+
+## 🎥 Demo
+
+Here’s a quick walkthrough of the chatbot in action:
+
+![Chatbot Demo](assets/chatbot-demo.gif)
