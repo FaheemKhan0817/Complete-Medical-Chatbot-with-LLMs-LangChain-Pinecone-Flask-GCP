@@ -1,0 +1,48 @@
+name: Build and Deploy to GCP
+
+on:
+  push:
+    branches: [ "main" ] # Trigger the workflow on push to the main branch
+
+jobs:
+  deploy:
+    runs-on: self-hosted # This job must run on your configured VM
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev
+
+      - name: Build and Push Docker Image
+        env:
+          IMAGE_PATH: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/medical-bot:latest
+        run: |
+          docker build -t $IMAGE_PATH .
+          docker push $IMAGE_PATH
+
+      - name: Pull and Run New Docker Container
+        env:
+          IMAGE_PATH: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/medical-bot:latest
+        run: |
+          # Stop and remove the old container if it exists
+          docker stop medical-chatbot-container || true
+          docker rm medical-chatbot-container || true
+          
+          # Pull the latest image from Artifact Registry
+          docker pull $IMAGE_PATH
+          
+          # Run the new container with environment variables from GitHub Secrets
+          docker run -d --name medical-chatbot-container -p 8080:8080 \
+            -e PINECONE_API_KEY='${{ secrets.PINECONE_API_KEY }}' \
+            -e GOOGLE_API_KEY='${{ secrets.GOOGLE_API_KEY }}' \
+            $IMAGE_PATH
